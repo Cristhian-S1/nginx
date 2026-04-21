@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaPay — Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #18181f;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.15);
+  --text: #f0f0f5;
+  --muted: #7a7a8c;
+  --accent: #6c63ff;
+  --accent2: #a78bfa;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --card-hover: rgba(108,99,255,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(108,99,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108,99,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glow orb */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(108,99,255,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo span {
+  font-weight: 400;
+  opacity: 0.6;
+  font-size: 0.85rem;
+  -webkit-text-fill-color: var(--muted);
+  margin-left: 8px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.cart-btn {
+  position: relative;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 18px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.cart-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+.cart-count {
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  min-width: 20px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+.cart-count.bump { animation: bump 0.3s ease; }
+@keyframes bump { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  padding: 4rem 2rem 2rem;
+  text-align: center;
+}
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 0.75rem;
+}
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero p {
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 420px;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+}
+
+/* status bar */
+.status-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 3rem;
+}
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── FILTER TABS ── */
+.filters {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  padding: 0 2rem 1.5rem;
+  overflow-x: auto;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: rgba(108,99,255,0.15);
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+/* ── PRODUCTS GRID ── */
+.products-section {
+  position: relative;
+  z-index: 1;
+  padding: 0 2rem 6rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.product-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.25s;
+  cursor: pointer;
+  animation: fadeUp 0.4s ease both;
+}
+.product-card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg3);
+  transform: translateY(-2px);
+}
+.product-card.in-cart {
+  border-color: rgba(108,99,255,0.4);
+  background: rgba(108,99,255,0.05);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.product-img {
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.product-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.badge-hot { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+.badge-new { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+.badge-sale { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+
+.product-body { padding: 1rem; }
+
+.product-category {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.product-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.product-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.product-price {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.product-price .currency {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 400;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.add-btn {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.add-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+.product-card.in-cart .add-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── CART SIDEBAR ── */
+.cart-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.cart-overlay.open { opacity: 1; pointer-events: all; }
+
+.cart-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 100vw);
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.cart-sidebar.open { transform: translateX(0); }
+
+.cart-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cart-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.close-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.close-btn:hover { color: var(--text); border-color: var(--border-hover); }
+
+.cart-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+}
+.cart-items::-webkit-scrollbar { width: 4px; }
+.cart-items::-webkit-scrollbar-track { background: transparent; }
+.cart-items::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.cart-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.cart-empty .empty-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+.cart-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  animation: fadeUp 0.2s ease;
+}
+.cart-item-icon {
+  width: 44px; height: 44px;
+  background: var(--bg3);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.cart-item-info { flex: 1; min-width: 0; }
+.cart-item-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.cart-item-price { font-size: 0.78rem; color: var(--muted); }
+
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qty-btn {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.qty-btn:hover { border-color: var(--accent); color: var(--accent2); }
+.qty-display { font-size: 0.85rem; font-weight: 500; min-width: 16px; text-align: center; }
+
+/* ── CART FOOTER ── */
+.cart-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.cart-summary {
+  margin-bottom: 1rem;
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.83rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.01em;
+}
+.checkout-btn:hover { background: #7c73ff; transform: translateY(-1px); }
+.checkout-btn:active { transform: translateY(0); }
+.checkout-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  padding: 1rem;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  transform: scale(0.9);
+  transition: transform 0.3s;
+}
+.modal-overlay.open .modal { transform: scale(1); }
+
+.modal-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  display: block;
+  animation: pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes pop-in {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+.modal-title.success { color: var(--success); }
+.modal-title.error   { color: var(--danger); }
+
+.modal-sub { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; }
+
+.modal-info {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: left;
+  margin-bottom: 1.5rem;
+  font-family: 'DM Mono', monospace;
+  line-height: 1.8;
+}
+.modal-info .key { color: var(--muted); }
+.modal-info .val { color: var(--text); font-weight: 500; }
+.modal-info .val.ok  { color: var(--success); }
+.modal-info .val.err { color: var(--danger); }
+
+.modal-close {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-close:hover { border-color: var(--border-hover); }
+
+/* loading spinner */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ── */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+.toast {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 20px;
+  font-size: 0.82rem;
+  color: var(--text);
+  animation: toast-in 0.3s ease;
+  pointer-events: all;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">NovaPay <span>/ marketplace</span></div>
+  <button class="cart-btn" onclick="toggleCart()">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 01-8 0"/>
+    </svg>
+    Carrito
+    <span class="cart-count" id="cart-count">0</span>
+  </button>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Tu marketplace,<br><em>sin fricciones.</em></h1>
+  <p>Descubre los mejores productos tecnológicos. Pago seguro respaldado por nuestro motor de validación distribuido.</p>
+  <div class="status-bar">
+    <span class="status-dot"></span>
+    Motor de pagos operativo · 3 réplicas activas
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters">
+  <button class="filter-btn active" onclick="filterProducts('all', this)">Todo</button>
+  <button class="filter-btn" onclick="filterProducts('audio', this)">Audio</button>
+  <button class="filter-btn" onclick="filterProducts('mobile', this)">Mobile</button>
+  <button class="filter-btn" onclick="filterProducts('computing', this)">Computación</button>
+  <button class="filter-btn" onclick="filterProducts('wearable', this)">Wearables</button>
+  <button class="filter-btn" onclick="filterProducts('gaming', this)">Gaming</button>
+</div>
+
+<!-- PRODUCTS -->
+<div class="products-section">
+  <div class="products-grid" id="products-grid"></div>
+</div>
+
+<!-- CART OVERLAY + SIDEBAR -->
+<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+<div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-header">
+    <span class="cart-title">Tu carrito</span>
+    <button class="close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items">
+    <div class="cart-empty">
+      <span class="empty-icon">🛒</span>
+      Tu carrito está vacío.<br>Agrega productos para comenzar.
+    </div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-summary" id="cart-summary"></div>
+    <button class="checkout-btn" id="checkout-btn" onclick="procesarPago()" disabled>
+      Validar y pagar
+    </button>
+  </div>
+</div>
+
+<!-- MODAL RESULTADO -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <span class="modal-icon" id="modal-icon"></span>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="modal-info" id="modal-info"></div>
+    <button class="modal-close" onclick="closeModal()">Cerrar</button>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ── CONFIG ──
+// Cambia esta URL según el entorno:
+// Local Arch:   http://localhost/validar
+// VM del taller: http://146.83.102.20/validar
+const API_URL = 'http://localhost/validar';
+
+// ── PRODUCTOS ──
+const PRODUCTS = [
+  { id:1,  emoji:'🎧', name:'Sony WH-1000XM5',     category:'audio',     desc:'Cancelación de ruido líder en la industria. 30h de batería.',    price:289990, badge:'hot'  },
+  { id:2,  emoji:'📱', name:'iPhone 15 Pro',        category:'mobile',    desc:'Chip A17 Pro, Dynamic Island, cámara 48MP.',                     price:999990, badge:'new'  },
+  { id:3,  emoji:'💻', name:'MacBook Air M3',       category:'computing', desc:'Potencia silenciosa. Pantalla Liquid Retina 13.6".',             price:1299990, badge:null  },
+  { id:4,  emoji:'⌚', name:'Apple Watch S9',       category:'wearable',  desc:'Double tap, siempre activo, GPS de alta precisión.',             price:399990, badge:'new'  },
+  { id:5,  emoji:'🎮', name:'PlayStation 5 Slim',   category:'gaming',    desc:'SSD ultrarrápido, 120fps, DualSense haptics.',                   price:549990, badge:'hot'  },
+  { id:6,  emoji:'🖥️', name:'LG UltraWide 34"',    category:'computing', desc:'Resolución 3440×1440, IPS Nano, 144Hz para trabajo y juego.',    price:499990, badge:'sale' },
+  { id:7,  emoji:'🎵', name:'AirPods Pro 2',        category:'audio',     desc:'ANC adaptativo, audio espacial, MagSafe. El estándar oro.',      price:249990, badge:null  },
+  { id:8,  emoji:'📷', name:'GoPro Hero 12',        category:'mobile',    desc:'5.3K60 + HyperSmooth 6.0. Para los que viven sin límites.',      price:419990, badge:null  },
+  { id:9,  emoji:'🖱️', name:'Logitech MX Master 3', category:'computing', desc:'Ergonomía perfecta, scroll electromagnético, 70 días batería.',  price:89990,  badge:null  },
+  { id:10, emoji:'🎯', name:'Xbox Series X',        category:'gaming',    desc:'4K a 60fps, Game Pass Ultimate, Quick Resume.',                  price:499990, badge:'sale' },
+  { id:11, emoji:'💡', name:'Kindle Paperwhite',    category:'wearable',  desc:'Pantalla 6.8", sin reflejos, 10 semanas de batería.',            price:129990, badge:null  },
+  { id:12, emoji:'🔌', name:'Anker 737 GaN',        category:'computing', desc:'140W, 3 puertos, carga laptops y móviles simultáneamente.',      price:79990,  badge:'new'  },
+];
+
+// ── ESTADO ──
+let cart = {};
+let currentFilter = 'all';
+
+// ── RENDER PRODUCTOS ──
+function renderProducts() {
+  const grid = document.getElementById('products-grid');
+  const filtered = currentFilter === 'all'
+    ? PRODUCTS
+    : PRODUCTS.filter(p => p.category === currentFilter);
+
+  grid.innerHTML = filtered.map((p, i) => `
+    <div class="product-card ${cart[p.id] ? 'in-cart' : ''}"
+         style="animation-delay:${i * 0.05}s"
+         id="card-${p.id}">
+      <div class="product-img">
+        ${p.emoji}
+        ${p.badge ? `<span class="product-badge badge-${p.badge}">${p.badge}</span>` : ''}
+      </div>
+      <div class="product-body">
+        <div class="product-category">${categoryLabel(p.category)}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <div class="product-price">
+            <span class="currency">CLP </span>${fmt(p.price)}
+          </div>
+          <button class="add-btn" onclick="toggleItem(${p.id})" title="Agregar al carrito">
+            ${cart[p.id] ? '✓' : '+'}
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function categoryLabel(c) {
+  return { audio:'Audio', mobile:'Mobile', computing:'Computación', wearable:'Wearables', gaming:'Gaming' }[c] || c;
+}
+
+function fmt(n) {
+  return n.toLocaleString('es-CL');
+}
+
+// ── FILTRO ──
+function filterProducts(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts();
+}
+
+// ── CARRITO ──
+function toggleItem(id) {
+  const product = PRODUCTS.find(p => p.id === id);
+  if (cart[id]) {
+    delete cart[id];
+    toast(`${product.name} eliminado del carrito`);
+  } else {
+    cart[id] = { ...product, qty: 1 };
+    toast(`${product.name} agregado ✓`);
+  }
+  updateCart();
+  renderProducts();
+}
+
+function updateQty(id, delta) {
+  if (!cart[id]) return;
+  cart[id].qty = Math.max(1, cart[id].qty + delta);
+  if (cart[id].qty === 0) delete cart[id];
+  updateCart();
+}
+
+function updateCart() {
+  const items = Object.values(cart);
+  const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const count = items.reduce((s, i) => s + i.qty, 0);
+
+  // count badge
+  const countEl = document.getElementById('cart-count');
+  countEl.textContent = count;
+  if (count > 0) countEl.classList.add('bump');
+  setTimeout(() => countEl.classList.remove('bump'), 300);
+
+  // items list
+  const itemsEl = document.getElementById('cart-items');
+  if (items.length === 0) {
+    itemsEl.innerHTML = `<div class="cart-empty"><span class="empty-icon">🛒</span>Tu carrito está vacío.<br>Agrega productos para comenzar.</div>`;
+  } else {
+    itemsEl.innerHTML = items.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-icon">${item.emoji}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">CLP ${fmt(item.price)} c/u</div>
+        </div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" onclick="updateQty(${item.id},-1)">−</button>
+          <span class="qty-display">${item.qty}</span>
+          <button class="qty-btn" onclick="updateQty(${item.id},+1)">+</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // summary
+  const tax = Math.round(total * 0.19);
+  const subtotal = total - tax;
+  document.getElementById('cart-summary').innerHTML = items.length > 0 ? `
+    <div class="summary-row"><span>Subtotal (${count} ítem${count>1?'s':''})</span><span>CLP ${fmt(subtotal)}</span></div>
+    <div class="summary-row"><span>IVA (19%)</span><span>CLP ${fmt(tax)}</span></div>
+    <div class="summary-total"><span>Total</span><span>CLP ${fmt(total)}</span></div>
+  ` : '';
+
+  // checkout button
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = items.length === 0;
+}
+
+function toggleCart() {
+  document.getElementById('cart-overlay').classList.toggle('open');
+  document.getElementById('cart-sidebar').classList.toggle('open');
+}
+
+// ── PAGO — llama GET /validar ──
+async function procesarPago() {
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Validando transacción...`;
+
+  const items  = Object.values(cart);
+  const total  = items.reduce((s,i) => s + i.price * i.qty, 0);
+  const txId   = 'TX-' + Date.now().toString(36).toUpperCase();
+  const t0     = Date.now();
+
+  try {
+    const res  = await fetch(API_URL);
+    const data = await res.json();
+    const ms   = Date.now() - t0;
+
+    if (data.status === 'aprobada') {
+      showModal({
+        icon: '✅',
+        type: 'success',
+        title: '¡Transacción aprobada!',
+        sub: 'Tu compra fue procesada exitosamente. Recibirás un correo con los detalles.',
+        info: { txId, estado: data.status, replica: data.port, latencia: ms + 'ms', monto: 'CLP ' + fmt(total), tiempo: data.processed_at },
+      });
+      cart = {};
+      updateCart();
+      renderProducts();
+    } else {
+      showModal({
+        icon: '❌',
+        type: 'error',
+        title: 'Transacción rechazada',
+        sub: 'Tu pago no pudo ser procesado. Intenta con otro método de pago.',
+        info: { txId, estado: data.status, replica: data.port, latencia: ms + 'ms', monto: 'CLP ' + fmt(total), motivo: 'Política de riesgo' },
+      });
+    }
+  } catch (err) {
+    const ms = Date.now() - t0;
+    showModal({
+      icon: '⚠️',
+      type: 'error',
+      title: 'Error de conexión',
+      sub: 'No se pudo contactar el motor de validación. El servicio podría estar no disponible.',
+      info: { txId, estado: 'error', error: err.message, latencia: ms + 'ms' },
+    });
+  }
+
+  toggleCart();
+  btn.disabled = false;
+  btn.innerHTML = 'Validar y pagar';
+}
+
+function showModal({ icon, type, title, sub, info }) {
+  document.getElementById('modal-icon').textContent = icon;
+  document.getElementById('modal-title').className = 'modal-title ' + type;
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-sub').textContent = sub;
+
+  const keys = { txId:'TX ID', estado:'Estado', replica:'Réplica (puerto)', latencia:'Latencia', monto:'Monto', tiempo:'Procesado', motivo:'Motivo', error:'Error' };
+  document.getElementById('modal-info').innerHTML = Object.entries(info).map(([k,v]) => {
+    const isOk  = k === 'estado' && v === 'aprobada';
+    const isErr = k === 'estado' && v !== 'aprobada';
+    return `<div><span class="key">${keys[k] || k}: </span><span class="val ${isOk?'ok':''} ${isErr?'err':''}">${v}</span></div>`;
+  }).join('');
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+// ── INIT ──
+renderProducts();
+updateCart();
+</script>
+</body>
+</html>
